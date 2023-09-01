@@ -1,5 +1,7 @@
 ---
-- hosts: all
+- hosts: local
+  become: true
+  
   handlers:
     - include: handlers/main.yml
   tasks:
@@ -7,12 +9,12 @@
       ansible.builtin.user:
         name: cloudru
         password: "{{ password | password_hash('sha512') }}"
-      become: true
+      
     - name: Install sshd server
       apt:
         name: "ssh"
         state: "present"
-      become: true
+      
     - name: Create the complete configuration file
       ansible.builtin.template:
         src: sshd_config.j2
@@ -20,8 +22,8 @@
         owner: root
         group: root
         mode: 644
-      become: true
       notify: reload_sshd
+      
     - name: Set authorized key taken from file
       ansible.posix.authorized_key:
         user: cloudru
@@ -29,4 +31,3 @@
         key: '{{ item }}'
       with_file:
         - public_keys/cloudru.pub
-      become: true
